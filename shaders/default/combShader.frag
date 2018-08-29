@@ -1,5 +1,4 @@
 #version 120
-#extension GL_NV_shadow_samplers_cube : enable
 
 uniform int flat_shading, TextureMap_isBound, CubeMap_isBound, DepthMap_isBound;
 uniform float spec_weight, opacity;
@@ -34,16 +33,15 @@ void main()
             }
     }
 
-    //Shade Cube Map and return, if needed
-    //if (CubeMap_isBound > 0){
-    //        final_color = textureCube(CubeMap, eyeVec);// * lightAmount;
-    //        final_color[3] = 1.0;
-    //        gl_FragColor = final_color;
-    //        return;
-    //}
-
-    // Ambient Lighting
-    float ambient_coeff = .25;
+    // Depth-Map Shadows
+    if (DepthMap_isBound > 0){
+        if (ShadowCoord.w > 0.0){
+            vec4 shadowCoordinateWdivide = ShadowCoord / ShadowCoord.w;
+            shadowCoordinateWdivide.z -= .0001; // to prevent "shadow acne" caused from precision errors
+            vec4 distanceFromLight = shadow2D(DepthMap, shadowCoordinateWdivide.xyz);
+            gl_FragColor.rgb *= 0.65 + (0.35 * distanceFromLight.rgb);
+        }
+    }
 
     // UV Texture
     vec3 texture_coeff = vec3(1.0);
